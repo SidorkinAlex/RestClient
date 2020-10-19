@@ -21,14 +21,6 @@ class RestClient {
         $this->username = 'admin';
         $this->password = md5('password');
 
-        //$this->apache_username = 'moedelo';
-        //s$this->apache_password = '<tpGfhjkz';
-
-
-        //$this->url = 'http://u424.local/custom/service/v4_1_calls_entries/rest.php';
-        //$this->username = 'admin';
-        //$this->password = md5('password');
-
 
 
     }
@@ -36,23 +28,20 @@ class RestClient {
     public function login($cache = true) {
 
 
-        // Файл с названием сессии
+  
         $sessionFile = 'cache/session.save';
 
         if($cache) {
-            // Если указан параметр испльзования кеша
-            // Пытаемся соединиться по старому подключению
-            //echo ('указан параметр испльзования кеша' . "<BR>");
-            //echo ('Пытаемся соединиться по старому подключению' . "<BR>");
+   
             if(file_exists($sessionFile)) {
                 $this->session = file_get_contents($sessionFile);
-                //echo '$this->session = ' . $this->session . "<BR>";
+                
             }
         }
 
 
         if ( !$this->session OR !$cache) {
-            //echo 'Сессия не указана' . "<BR>";
+        
 
             $login_parameters = [
                 'user_auth' => array(
@@ -65,8 +54,6 @@ class RestClient {
             if ( isset($result['id']) ) {
                 $this->session = $result['id'];
 
-                // Записываем сессию в файл
-                //echo 'Записываем сессию '.$this->session.' в файл' . "<BR>";
                 $file = fopen($sessionFile, 'w+');
                 fwrite($file, $this->session);
                 fclose($file);
@@ -74,7 +61,6 @@ class RestClient {
                 return true;
             }
         } else {
-            //echo 'Сессия уже указана' . "<BR>";
             return true;
         }
         return false;
@@ -85,10 +71,7 @@ class RestClient {
             throw new Exception("Не указан url API", 1);
         }
 
-        //echo '$method = ' . $method . ' $this->session = ' . $this->session . "<BR>";
-        //echo '$params:' . "<BR><pre>";
-        //var_export($params);
-        //echo '</pre>';
+
         if ($method !== 'login' && empty($this->session)) {
 
             if (!$this->login(false)) {
@@ -102,7 +85,7 @@ class RestClient {
         curl_setopt($curl, CURLOPT_BINARYTRANSFER, 1);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
-        //curl_setopt($curl, CURLOPT_USERPWD, $this->apache_username . ':' . $this->apache_password);
+     
 
         $json = json_encode($params);
         if ($method == 'get_account_url_and_user_caller_id_for_phone') {
@@ -111,8 +94,7 @@ class RestClient {
 
         $response = curl_exec($curl);
 
-        //echo '$response = ' . $response . "<BR>";
-        //var_export($response);
+
         if($response === false) {
             throw new Exception(curl_error($curl), 1);
         }
@@ -122,14 +104,13 @@ class RestClient {
         }
 
         if(isset($res['name']) AND $res['name'] == 'Invalid Session ID') {
-            // Закончилась авторизация
-            //echo 'Закончилась авторизация!' . "<BR>";
 
-            // Заново авторизуемся
+
+            
             $this->session = null;
             $this->login(false);
 
-            // Меняем в параметрах номер сессии
+            
             $params[0] = $this->session;
             return $this->sendRequest($method, $params);
         }
